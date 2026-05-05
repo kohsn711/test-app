@@ -3,14 +3,24 @@
 ## 概要
 Supabaseプロジェクトの作成と環境変数の設定。
 
+## Supabaseプロジェクト情報
+
+| 項目 | 値 |
+|------|----|
+| プロジェクト名 | claude-code-intro-app |
+| プロジェクトID | erhmthnfwwqlxkhcvyqt |
+| URL | https://erhmthnfwwqlxkhcvyqt.supabase.co |
+| リージョン | ap-northeast-1 |
+| ステータス | ACTIVE_HEALTHY |
+
 ## ToDo
 
-- [ ] Supabaseダッシュボードでプロジェクトを新規作成
+- [x] Supabaseダッシュボードでプロジェクトを新規作成
 - [ ] `@supabase/supabase-js` と `@supabase/ssr` をインストール
 - [ ] `.env.local` を作成し環境変数を設定
 
 ```
-NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_URL=https://erhmthnfwwqlxkhcvyqt.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 ```
 
