@@ -78,6 +78,28 @@ MVPでは独立したAPIサーバーを作らない。Next.js Server Actions ま
 
 `pages/` ディレクトリは使わない。App Routerのみ使用。Server Componentsがデフォルト — ブラウザAPIやインタラクティブな処理が必要な場合のみ `"use client"` を付ける。DB操作はサーバー側に寄せる。
 
+### ディレクトリ構成
+
+```
+app/
+  (auth)/login/        # 共通ログイン画面
+  (student)/           # 学生用ルートグループ
+  (coach)/             # 監督用ルートグループ
+  (parent)/            # 保護者用ルートグループ
+  (admin)/             # 管理者用ルートグループ
+  layout.tsx           # ルートレイアウト
+  globals.css          # グローバルスタイル（Tailwind import）
+components/            # 再利用コンポーネント（app/外）
+utils/supabase/        # Supabaseクライアント
+  server.ts            # Server Components / Server Actions / Route Handlers 用
+  client.ts            # Client Components 用
+lib/                   # ドメインロジック・ユーティリティ
+middleware.ts          # 認証トークン更新・保護ルート
+docs/                  # 機能チケット（連番マークダウン）
+```
+
+ロール別ルートグループ `(student)` `(coach)` `(parent)` `(admin)` でURLに影響を与えずレイアウトを共有する。
+
 ### 主要画面
 
 **Student:** Login / Initial Setup / Student Home / Today Record / Record Detail / Goals / Contents List / Content Detail / My Page
@@ -114,6 +136,20 @@ MVPでは独立したAPIサーバーを作らない。Next.js Server Actions ま
 | reflection | reflection_records | できたこと・課題・明日やること・今日の気分1〜5 |
 
 未入力カテゴリがあっても保存できること。
+
+### 目標（goals）
+
+学生が自分で設定する目標。記録継続のモチベーション維持が目的。
+
+主要フィールド:
+- title: 目標タイトル
+- description: 目標内容
+- category: practice / training / meal / condition / general
+- target_date: 達成期限
+- status: active / achieved / abandoned
+- created_at / updated_at
+
+学生は複数の目標を設定でき、`status = active` のものが学生ホームに進捗サマリーとして表示される。監督は所属チーム学生の目標を閲覧できる（編集不可）。
 
 ### 主要テーブル一覧
 
@@ -348,13 +384,14 @@ middleware.ts（必須）:
 6. 学生ホーム
 7. 今日の記録作成・編集
 8. 記録詳細
-9. チーム作成・チーム参加
-10. 監督の選手一覧
-11. 保護者承認
-12. 保護者ホーム
-13. リアクション・定型コメント
-14. アプリ内通知
-15. コンテンツ一覧・詳細
-16. 運営コンテンツ管理
-17. 最低限のテスト
-18. Vercelデプロイ
+9. 学生の目標設定・進捗確認
+10. チーム作成・チーム参加
+11. 監督の選手一覧・記録閲覧
+12. 保護者メール登録・保護者承認
+13. 保護者ホーム・子どもの記録閲覧
+14. リアクション・定型コメント
+15. アプリ内通知
+16. コンテンツ一覧・詳細
+17. 運営コンテンツ管理
+18. 最低限のテスト
+19. Vercelデプロイ
