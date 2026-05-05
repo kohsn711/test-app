@@ -16,18 +16,18 @@ Supabaseプロジェクトの作成と環境変数の設定。
 ## ToDo
 
 - [x] Supabaseダッシュボードでプロジェクトを新規作成
-- [ ] `@supabase/supabase-js` と `@supabase/ssr` をインストール
-- [ ] `.env.local` を作成し環境変数を設定
+- [x] `@supabase/supabase-js` と `@supabase/ssr` をインストール
+- [x] `.env.local` を作成し環境変数を設定
 
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://erhmthnfwwqlxkhcvyqt.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 ```
 
-- [ ] `utils/supabase/server.ts` を作成（Server Components / Server Actions 用）
-- [ ] `utils/supabase/client.ts` を作成（Client Components 用）
-- [ ] 旧 `anon` キーではなく新しい publishable キー（`sb_publishable_xxx`）を使っていることを確認
-- [ ] `SUPABASE_SERVICE_ROLE_KEY` が `.env.local` にのみ存在しクライアントに露出していないことを確認
+- [x] `utils/supabase/server.ts` を作成（Server Components / Server Actions 用）
+- [x] `utils/supabase/client.ts` を作成（Client Components 用）
+- [x] 旧 `anon` キーではなく新しい publishable キー（`sb_publishable_xxx`）を使っていることを確認
+- [x] `SUPABASE_SERVICE_ROLE_KEY` が `.env.local` にのみ存在しクライアントに露出していないことを確認
 
 ## 備考
 
