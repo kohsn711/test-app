@@ -154,7 +154,7 @@ docs/                  # 機能チケット（連番マークダウン）
 ### 主要テーブル一覧
 
 ```
-users / profiles / teams / team_members / parent_child_links
+auth.users（Supabase Auth管理）/ profiles / teams / team_members / parent_child_links
 daily_records / practice_entries / training_entries / meal_records
 condition_records / injury_records / reflection_records
 goals / reactions / preset_comments / comments
@@ -163,7 +163,7 @@ contents / notifications
 
 ### 主要リレーション
 
-- users 1:1 profiles
+- auth.users 1:1 profiles
 - teams 1:N team_members（users 1:N team_members）
 - users(parent) 1:N parent_child_links ← users(student)
 - users(student) 1:N daily_records
