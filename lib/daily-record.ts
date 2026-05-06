@@ -225,3 +225,68 @@ export const fetchDailyRecord = async (
 
   return data
 }
+
+export type RecordReaction = {
+  id: string
+  emoji: string
+  senderName: string
+  createdAt: string
+}
+export type RecordComment = {
+  id: string
+  text: string
+  senderName: string
+  createdAt: string
+}
+
+export const fetchRecordSocial = async (
+  dailyRecordId: string
+): Promise<{ reactions: RecordReaction[]; comments: RecordComment[] }> => {
+  const supabase = await createClient()
+
+  const [reactionsRes, commentsRes] = await Promise.all([
+    supabase
+      .from('reactions')
+      .select('id, emoji, created_at, sender:profiles!reactions_sender_id_fkey(display_name)')
+      .eq('daily_record_id', dailyRecordId)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('comments')
+      .select(
+        'id, created_at, sender:profiles!comments_sender_id_fkey(display_name), preset:preset_comments!comments_preset_comment_id_fkey(text)'
+      )
+      .eq('daily_record_id', dailyRecordId)
+      .order('created_at', { ascending: false }),
+  ])
+
+  type ReactionRow = {
+    id: string
+    emoji: string
+    created_at: string
+    sender: { display_name: string } | { display_name: string }[] | null
+  }
+  type CommentRow = {
+    id: string
+    created_at: string
+    sender: { display_name: string } | { display_name: string }[] | null
+    preset: { text: string } | { text: string }[] | null
+  }
+
+  const pickOne = <T>(v: T | T[] | null | undefined): T | null =>
+    Array.isArray(v) ? (v[0] ?? null) : (v ?? null)
+
+  const reactions: RecordReaction[] = ((reactionsRes.data ?? []) as ReactionRow[]).map((r) => ({
+    id: r.id,
+    emoji: r.emoji,
+    senderName: pickOne(r.sender)?.display_name ?? '',
+    createdAt: r.created_at,
+  }))
+  const comments: RecordComment[] = ((commentsRes.data ?? []) as CommentRow[]).map((c) => ({
+    id: c.id,
+    text: pickOne(c.preset)?.text ?? '',
+    senderName: pickOne(c.sender)?.display_name ?? '',
+    createdAt: c.created_at,
+  }))
+
+  return { reactions, comments }
+}
