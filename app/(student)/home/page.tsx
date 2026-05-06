@@ -10,6 +10,7 @@ import {
   fetchRecentRecordedDates,
   isTodayRecorded,
 } from '@/lib/student-home'
+import { fetchTeamsForUser } from '@/lib/team'
 import { Calendar } from './calendar'
 
 export const metadata = {
@@ -33,12 +34,13 @@ export default async function StudentHome() {
   const today = getJstParts()
   const todayIso = today.iso
 
-  const [todayRecorded, monthlyDates, recentDates, feedback, goals] = await Promise.all([
+  const [todayRecorded, monthlyDates, recentDates, feedback, goals, teams] = await Promise.all([
     isTodayRecorded(userId, todayIso),
     fetchMonthlyRecordedDates(userId, today.year, today.month),
     fetchRecentRecordedDates(userId),
     fetchRecentFeedback(userId),
     fetchActiveGoals(userId),
+    fetchTeamsForUser(userId),
   ])
 
   const streak = calculateStreak(recentDates)
@@ -49,6 +51,21 @@ export default async function StudentHome() {
       <header className="space-y-1">
         <p className="text-xs text-slate-500">こんにちは</p>
         <h1 className="text-lg font-semibold text-slate-900">{profile.display_name} さん</h1>
+        {teams.length === 0 ? (
+          <p className="text-xs text-slate-500">
+            まだチームに所属していません。
+            <Link href="/team/join" className="ml-1 underline">
+              チームに参加する
+            </Link>
+          </p>
+        ) : (
+          <p className="text-xs text-slate-500">
+            所属チーム: {teams.map((t) => t.name).join(' / ')}
+            <Link href="/team/join" className="ml-2 underline">
+              追加で参加
+            </Link>
+          </p>
+        )}
       </header>
 
       {/* 1. 今日の記録ボタン */}

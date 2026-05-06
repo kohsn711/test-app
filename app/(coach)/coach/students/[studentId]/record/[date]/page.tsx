@@ -2,24 +2,27 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { fetchDailyRecord, fetchRecordSocial } from '@/lib/daily-record'
+import { fetchCoachStudent } from '@/lib/coach'
 import { getJstParts } from '@/lib/date-jst'
 import { RecordDetailView, formatDateHeader } from '@/components/record-detail-view'
 
 export const metadata = {
-  title: '記録詳細 | 野球ノート',
+  title: '選手の記録詳細 | 野球ノート',
 }
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
+const UUID = /^[0-9a-fA-F-]{36}$/
 
-export default async function RecordDetailPage({
+export default async function CoachStudentRecordPage({
   params,
 }: {
-  params: Promise<{ date: string }>
+  params: Promise<{ studentId: string; date: string }>
 }) {
-  const { date: rawDate } = await params
+  const { studentId, date: rawDate } = await params
+  if (!UUID.test(studentId)) notFound()
 
   const today = getJstParts().iso
-  const recordDate = rawDate === 'today' ? today : rawDate
+  const recordDate = rawDate
   if (!ISO_DATE.test(recordDate)) notFound()
   const [y, m, d] = recordDate.split('-').map(Number)
   const dt = new Date(Date.UTC(y, m - 1, d))
@@ -41,9 +44,12 @@ export default async function RecordDetailPage({
     .eq('id', userId)
     .maybeSingle()
   if (!profile?.role) redirect('/setup')
-  if (profile.role !== 'student') redirect('/login')
+  if (profile.role !== 'coach') redirect('/login')
 
-  const data = await fetchDailyRecord(userId, recordDate)
+  const student = await fetchCoachStudent(userId, studentId)
+  if (!student) notFound()
+
+  const data = await fetchDailyRecord(studentId, recordDate)
   if (!data.dailyRecordId) notFound()
 
   const { reactions, comments } = await fetchRecordSocial(data.dailyRecordId)
@@ -51,20 +57,19 @@ export default async function RecordDetailPage({
   return (
     <div className="mx-auto w-full max-w-md space-y-4 px-4 py-6">
       <header className="flex items-center justify-between">
-        <Link href="/home" className="text-sm text-slate-500">
-          ← ホーム
-        </Link>
-        <Link
-          href={`/records/${recordDate}`}
-          className="rounded-full bg-slate-900 px-4 py-1.5 text-xs font-semibold text-white"
-        >
-          編集
+        <Link href={`/coach/students/${studentId}`} className="text-sm text-slate-500">
+          ← {student.displayName || '選手'} の記録一覧
         </Link>
       </header>
 
-      <h1 className="text-lg font-semibold text-slate-900">
-        {formatDateHeader(recordDate)} の記録
-      </h1>
+      <div className="space-y-1">
+        <p className="text-xs text-slate-500">
+          {student.teamName} ・ {student.displayName || '（名前未設定）'} さん
+        </p>
+        <h1 className="text-lg font-semibold text-slate-900">
+          {formatDateHeader(recordDate)} の記録
+        </h1>
+      </div>
 
       <RecordDetailView data={data} reactions={reactions} comments={comments} />
     </div>
