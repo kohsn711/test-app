@@ -33,9 +33,12 @@ export const fetchTeamsForUser = async (userId: string): Promise<TeamSummary[]> 
 
   if (error || !data) return []
 
-  return data
+  type TeamRow = { id: string; name: string; team_code: string }
+  type Row = { teams: TeamRow | TeamRow[] | null }
+
+  return (data as unknown as Row[])
     .map((row) => {
-      const team = (row as { teams: { id: string; name: string; team_code: string } | null }).teams
+      const team = Array.isArray(row.teams) ? (row.teams[0] ?? null) : row.teams
       if (!team) return null
       return { id: team.id, name: team.name, teamCode: team.team_code }
     })
