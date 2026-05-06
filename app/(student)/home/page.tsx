@@ -130,6 +130,24 @@ export default async function StudentHome() {
         )}
       </section>
 
+      {/* 保護者の登録 */}
+      <section className="rounded-2xl bg-white p-4 shadow-sm">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-sm font-semibold text-slate-900">保護者の登録</h2>
+            <p className="text-xs text-slate-500">
+              保護者を招待すると記録を見てもらえます。
+            </p>
+          </div>
+          <Link
+            href="/settings/parent"
+            className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-700"
+          >
+            管理する
+          </Link>
+        </div>
+      </section>
+
       {/* 6. 目標進捗 */}
       <section className="rounded-2xl bg-white p-4 shadow-sm">
         <div className="mb-2 flex items-center justify-between">
