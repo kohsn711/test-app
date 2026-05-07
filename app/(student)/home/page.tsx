@@ -11,6 +11,7 @@ import {
   isTodayRecorded,
 } from '@/lib/student-home'
 import { fetchTeamsForUser } from '@/lib/team'
+import { countUnreadNotifications } from '@/lib/notifications'
 import { Calendar } from './calendar'
 
 export const metadata = {
@@ -34,14 +35,16 @@ export default async function StudentHome() {
   const today = getJstParts()
   const todayIso = today.iso
 
-  const [todayRecorded, monthlyDates, recentDates, feedback, goals, teams] = await Promise.all([
-    isTodayRecorded(userId, todayIso),
-    fetchMonthlyRecordedDates(userId, today.year, today.month),
-    fetchRecentRecordedDates(userId),
-    fetchRecentFeedback(userId),
-    fetchActiveGoals(userId),
-    fetchTeamsForUser(userId),
-  ])
+  const [todayRecorded, monthlyDates, recentDates, feedback, goals, teams, unreadCount] =
+    await Promise.all([
+      isTodayRecorded(userId, todayIso),
+      fetchMonthlyRecordedDates(userId, today.year, today.month),
+      fetchRecentRecordedDates(userId),
+      fetchRecentFeedback(userId),
+      fetchActiveGoals(userId),
+      fetchTeamsForUser(userId),
+      countUnreadNotifications(userId),
+    ])
 
   const streak = calculateStreak(recentDates)
   const message = getDailyMessage(todayIso)
@@ -49,8 +52,27 @@ export default async function StudentHome() {
   return (
     <div className="mx-auto w-full max-w-md space-y-4 px-4 py-6">
       <header className="space-y-1">
-        <p className="text-xs text-slate-500">こんにちは</p>
-        <h1 className="text-lg font-semibold text-slate-900">{profile.display_name} さん</h1>
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-xs text-slate-500">こんにちは</p>
+            <h1 className="text-lg font-semibold text-slate-900">
+              {profile.display_name} さん
+            </h1>
+          </div>
+          <Link
+            href="/notifications"
+            className="relative inline-flex items-center gap-1 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-700"
+            aria-label={`通知 ${unreadCount > 0 ? `(未読${unreadCount}件)` : ''}`}
+          >
+            <span>🔔</span>
+            <span>通知</span>
+            {unreadCount > 0 && (
+              <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+          </Link>
+        </div>
         {teams.length === 0 ? (
           <p className="text-xs text-slate-500">
             まだチームに所属していません。

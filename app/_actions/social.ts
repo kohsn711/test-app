@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { isReactionEmoji } from '@/lib/social-constants'
+import { createNotification } from '@/lib/notifications'
 
 const UUID = /^[0-9a-fA-F-]{36}$/
 
@@ -30,24 +31,34 @@ const requireCoachOrParent = async (): Promise<
 const canSendTo = async (
   userId: string,
   dailyRecordId: string
-): Promise<boolean> => {
+): Promise<{ ok: boolean; studentId: string | null }> => {
   const supabase = await createClient()
   const { data: dr } = await supabase
     .from('daily_records')
     .select('student_id')
     .eq('id', dailyRecordId)
     .maybeSingle()
-  if (!dr?.student_id) return false
+  if (!dr?.student_id) return { ok: false, studentId: null }
 
   const { data: coachOk } = await supabase.rpc('is_coach_of_student', {
     _student_id: dr.student_id,
   })
-  if (coachOk === true) return true
+  if (coachOk === true) return { ok: true, studentId: dr.student_id }
 
   const { data: parentOk } = await supabase.rpc('is_active_parent_of', {
     _student_id: dr.student_id,
   })
-  return parentOk === true
+  return { ok: parentOk === true, studentId: dr.student_id }
+}
+
+const fetchSenderName = async (userId: string): Promise<string> => {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('profiles')
+    .select('display_name')
+    .eq('id', userId)
+    .maybeSingle()
+  return (data?.display_name as string) ?? ''
 }
 
 export const toggleReaction = async (
@@ -60,7 +71,8 @@ export const toggleReaction = async (
   const auth = await requireCoachOrParent()
   if (!auth.ok) return auth
 
-  if (!(await canSendTo(auth.userId, dailyRecordId))) {
+  const access = await canSendTo(auth.userId, dailyRecordId)
+  if (!access.ok || !access.studentId) {
     return { ok: false, error: 'この記録にはリアクションできません。' }
   }
 
@@ -88,6 +100,18 @@ export const toggleReaction = async (
     emoji,
   })
   if (error) return { ok: false, error: 'リアクションの送信に失敗しました。' }
+
+  if (access.studentId !== auth.userId) {
+    const senderName = await fetchSenderName(auth.userId)
+    await createNotification({
+      userId: access.studentId,
+      type: 'reaction',
+      title: `${senderName || '応援者'}さんからリアクションが届きました`,
+      body: emoji,
+      relatedRecordId: dailyRecordId,
+    })
+  }
+
   return { ok: true }
 }
 
@@ -110,7 +134,8 @@ export const sendComment = async (
   const auth = await requireCoachOrParent()
   if (!auth.ok) return auth
 
-  if (!(await canSendTo(auth.userId, dailyRecordId))) {
+  const access = await canSendTo(auth.userId, dailyRecordId)
+  if (!access.ok || !access.studentId) {
     return { ok: false, error: 'この記録にはコメントできません。' }
   }
 
@@ -121,5 +146,17 @@ export const sendComment = async (
     text: trimmed,
   })
   if (error) return { ok: false, error: 'コメントの送信に失敗しました。' }
+
+  if (access.studentId !== auth.userId) {
+    const senderName = await fetchSenderName(auth.userId)
+    await createNotification({
+      userId: access.studentId,
+      type: 'comment',
+      title: `${senderName || '応援者'}さんからコメントが届きました`,
+      body: trimmed,
+      relatedRecordId: dailyRecordId,
+    })
+  }
+
   return { ok: true }
 }
