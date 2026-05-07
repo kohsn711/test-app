@@ -17,11 +17,13 @@
 - [x] 既読・未読の管理（`is_read` カラム）
 
 ### 通知バッジ
-- [x] 学生ホームまたはナビゲーションに未読通知数を表示
-- [x] バッジの数値は学生ホームのデータフェッチ時に取得
+- [x] 学生ホームの `PageHeader` 右端にベルアイコン + 未読件数バッジを表示
+- [x] バッジの数値は `countUnreadNotifications(userId)` で取得し、他フェッチと `Promise.all` で並列実行
+- [x] 件数 99 超は `99+` と表示
 
 ### 既読処理
 - [x] 通知一覧を開いたタイミングで既読にする
+- [x] 未読がある場合のみ UPDATE を実行し、完了後に `revalidatePath('/', 'layout')` でホームのバッジを即時リセット
 
 ### アクセス制御
 - [x] 通知は本人のみ閲覧可（RLS + アプリ側チェック）
@@ -36,7 +38,7 @@
 - `lib/notifications.ts` — `fetchNotifications` / `countUnreadNotifications` / `createNotification`
 - `app/_actions/social.ts` — リアクション/コメント作成成功時に通知を insert
 - `app/(student)/notifications/page.tsx` — 一覧表示 + ページ表示時に既読化
-- `app/(student)/home/page.tsx` — ヘッダー右上に未読バッジ付き通知リンク
+- `app/(student)/home/page.tsx` — `PageHeader` 右端にベルアイコン（未読バッジ付き）をインライン配置
 
 ## UI 仕様メモ
 - リアクション通知: 左アイコン位置に押された絵文字（👍🔥💪❤️）を表示。本文行は省略

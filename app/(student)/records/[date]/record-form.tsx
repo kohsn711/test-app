@@ -389,7 +389,7 @@ export const RecordForm = ({ data }: { data: DailyRecordData }) => {
         </p>
       )}
 
-      <div className="sticky bottom-0 -mx-4 border-t border-slate-200 bg-slate-50/95 px-4 py-3 backdrop-blur">
+      <div className="sticky sticky-above-nav -mx-4 border-t border-slate-200 bg-slate-50/95 px-4 py-3 backdrop-blur">
         <button
           type="submit"
           disabled={pending}

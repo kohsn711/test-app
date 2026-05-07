@@ -8,6 +8,7 @@ import {
   GOAL_STATUS_LABEL,
   type GoalStatus,
 } from '@/lib/goals'
+import { PageHeader } from '@/components/page-header'
 import { StatusButtons } from './status-buttons'
 
 export const metadata = {
@@ -40,20 +41,18 @@ export default async function GoalsPage({
   const goals = await fetchGoalsByStatus(userId, status)
 
   return (
-    <div className="mx-auto w-full max-w-md space-y-4 px-4 py-6">
-      <header className="flex items-center justify-between">
-        <Link href="/home" className="text-sm text-slate-500">
-          ← ホーム
-        </Link>
+    <>
+      <PageHeader>
+        <h1 className="text-base font-semibold text-slate-900">目標</h1>
         <Link
           href="/goals/new"
           className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white"
         >
           新規作成
         </Link>
-      </header>
+      </PageHeader>
 
-      <h1 className="text-lg font-semibold text-slate-900">目標</h1>
+      <div className="mx-auto w-full max-w-md space-y-4 px-4 py-4">
 
       <nav className="flex gap-1 rounded-lg bg-slate-100 p-1 text-sm">
         {GOAL_STATUSES.map((s) => {
@@ -107,5 +106,6 @@ export default async function GoalsPage({
         </ul>
       )}
     </div>
+    </>
   )
 }

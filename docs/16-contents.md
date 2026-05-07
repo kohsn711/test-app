@@ -46,7 +46,7 @@
 - [x] `next/image` でサムネイル表示（`fill` + `sizes` 指定）
 - [x] `loading.tsx` でスケルトン表示（学生・保護者・監督の各ページ）
 - [x] `params` / `searchParams` は `await` で取得
-- [x] 各ロールのホーム画面に「コンテンツ」導線カードを追加
+- [x] 各ロールのホーム画面に「コンテンツ」導線カードを追加 ※16b で BottomNav 追加に伴い各ホームの導線カードは削除済み
 
 ### 共有コンポーネント
 - `components/contents-list.tsx` — カテゴリチップ + 記事カード一覧（`basePath` で切替）

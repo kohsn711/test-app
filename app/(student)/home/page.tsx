@@ -4,7 +4,6 @@ import { createClient } from '@/utils/supabase/server'
 import { getJstParts, calculateStreak } from '@/lib/date-jst'
 import { getDailyMessage } from '@/lib/messages'
 import {
-  fetchActiveGoals,
   fetchMonthlyRecordedDates,
   fetchRecentFeedback,
   fetchRecentRecordedDates,
@@ -12,6 +11,7 @@ import {
 } from '@/lib/student-home'
 import { fetchTeamsForUser } from '@/lib/team'
 import { countUnreadNotifications } from '@/lib/notifications'
+import { PageHeader } from '@/components/page-header'
 import { Calendar } from './calendar'
 
 export const metadata = {
@@ -35,13 +35,12 @@ export default async function StudentHome() {
   const today = getJstParts()
   const todayIso = today.iso
 
-  const [todayRecorded, monthlyDates, recentDates, feedback, goals, teams, unreadCount] =
+  const [todayRecorded, monthlyDates, recentDates, feedback, teams, unreadCount] =
     await Promise.all([
       isTodayRecorded(userId, todayIso),
       fetchMonthlyRecordedDates(userId, today.year, today.month),
       fetchRecentRecordedDates(userId),
       fetchRecentFeedback(userId),
-      fetchActiveGoals(userId),
       fetchTeamsForUser(userId),
       countUnreadNotifications(userId),
     ])
@@ -50,45 +49,38 @@ export default async function StudentHome() {
   const message = getDailyMessage(todayIso)
 
   return (
-    <div className="mx-auto w-full max-w-md space-y-4 px-4 py-6">
-      <header className="space-y-1">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-xs text-slate-500">こんにちは</p>
-            <h1 className="text-lg font-semibold text-slate-900">
-              {profile.display_name} さん
-            </h1>
-          </div>
+    <>
+      <PageHeader>
+        <div>
+          <p className="text-xs text-slate-500">こんにちは</p>
+          <p className="text-base font-semibold text-slate-900">{profile.display_name} さん</p>
+        </div>
+        <div className="flex shrink-0 items-center gap-3">
+          {teams.length > 0 && (
+            <p className="text-xs text-slate-500">{teams.map((t) => t.name).join(' / ')}</p>
+          )}
           <Link
             href="/notifications"
-            className="relative inline-flex items-center gap-1 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-700"
-            aria-label={`通知 ${unreadCount > 0 ? `(未読${unreadCount}件)` : ''}`}
+            aria-label={`通知${unreadCount > 0 ? ` (未読${unreadCount}件)` : ''}`}
+            className="relative flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-lg"
           >
-            <span>🔔</span>
-            <span>通知</span>
+            🔔
             {unreadCount > 0 && (
-              <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+              <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">
                 {unreadCount > 99 ? '99+' : unreadCount}
               </span>
             )}
           </Link>
         </div>
-        {teams.length === 0 ? (
-          <p className="text-xs text-slate-500">
-            まだチームに所属していません。
-            <Link href="/team/join" className="ml-1 underline">
-              チームに参加する
-            </Link>
-          </p>
-        ) : (
-          <p className="text-xs text-slate-500">
-            所属チーム: {teams.map((t) => t.name).join(' / ')}
-            <Link href="/team/join" className="ml-2 underline">
-              追加で参加
-            </Link>
-          </p>
-        )}
-      </header>
+      </PageHeader>
+
+      <div className="mx-auto w-full max-w-md space-y-4 px-4 py-4">
+      {teams.length === 0 && (
+        <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          まだチームに所属していません。
+          <Link href="/team/join" className="ml-1 underline">チームに参加する</Link>
+        </p>
+      )}
 
       {/* 1. 今日の記録ボタン */}
       <Link
@@ -152,69 +144,7 @@ export default async function StudentHome() {
         )}
       </section>
 
-      {/* コンテンツ */}
-      <section className="rounded-2xl bg-white p-4 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-sm font-semibold text-slate-900">コンテンツ</h2>
-            <p className="text-xs text-slate-500">記事や動画を見る</p>
-          </div>
-          <Link
-            href="/contents"
-            className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-700"
-          >
-            一覧を見る
-          </Link>
-        </div>
-      </section>
-
-      {/* 保護者の登録 */}
-      <section className="rounded-2xl bg-white p-4 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-sm font-semibold text-slate-900">保護者の登録</h2>
-            <p className="text-xs text-slate-500">
-              保護者を招待すると記録を見てもらえます。
-            </p>
-          </div>
-          <Link
-            href="/settings/parent"
-            className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-700"
-          >
-            管理する
-          </Link>
-        </div>
-      </section>
-
-      {/* 6. 目標進捗 */}
-      <section className="rounded-2xl bg-white p-4 shadow-sm">
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-slate-900">目標</h2>
-          <Link href="/goals" className="text-xs text-slate-500 underline">
-            すべて見る
-          </Link>
-        </div>
-        {goals.length === 0 ? (
-          <p className="text-sm text-slate-500">
-            まだ目標が設定されていません。
-            <Link href="/goals/new" className="ml-1 underline">
-              設定する
-            </Link>
-          </p>
-        ) : (
-          <ul className="space-y-2">
-            {goals.map((g) => (
-              <li key={g.id} className="rounded-lg bg-slate-50 px-3 py-2">
-                <p className="text-sm font-medium text-slate-900">{g.title}</p>
-                <p className="text-xs text-slate-500">
-                  {g.category}
-                  {g.targetDate && ` ・ 目標日 ${g.targetDate}`}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-    </div>
+      </div>
+    </>
   )
 }

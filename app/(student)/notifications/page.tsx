@@ -1,7 +1,9 @@
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
+import Link from 'next/link'
 import { createClient } from '@/utils/supabase/server'
 import { fetchNotifications } from '@/lib/notifications'
+import { PageHeader } from '@/components/page-header'
 
 export const metadata = {
   title: '通知 | 野球ノート',
@@ -32,21 +34,24 @@ export default async function NotificationsPage() {
 
   const items = await fetchNotifications(userId)
 
-  // 一覧表示後に既読化（render 中に revalidatePath を呼べないので直接更新のみ）
-  await supabase
-    .from('notifications')
-    .update({ is_read: true })
-    .eq('user_id', userId)
-    .eq('is_read', false)
+  const hasUnread = items.some((n) => !n.isRead)
+  if (hasUnread) {
+    await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('user_id', userId)
+      .eq('is_read', false)
+    // 学生 layout のヘッダーベル未読数を再計算させる
+    revalidatePath('/', 'layout')
+  }
 
   return (
-    <div className="mx-auto w-full max-w-md space-y-3 px-4 py-6">
-      <header className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold text-slate-900">通知</h1>
-        <Link href="/home" className="text-xs text-slate-500 underline">
-          ホームへ
-        </Link>
-      </header>
+    <>
+      <PageHeader>
+        <h1 className="text-base font-semibold text-slate-900">通知</h1>
+      </PageHeader>
+
+      <div className="mx-auto w-full max-w-md space-y-3 px-4 py-4">
 
       {items.length === 0 ? (
         <p className="rounded-2xl bg-white p-4 text-sm text-slate-500 shadow-sm">
@@ -97,5 +102,6 @@ export default async function NotificationsPage() {
         </ul>
       )}
     </div>
+    </>
   )
 }

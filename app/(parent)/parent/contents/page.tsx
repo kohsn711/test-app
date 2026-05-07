@@ -1,9 +1,9 @@
-import Link from 'next/link'
 import {
   fetchPublishedCategories,
   fetchPublishedContents,
 } from '@/lib/contents'
 import { ContentsList } from '@/components/contents-list'
+import { PageHeader } from '@/components/page-header'
 
 export const metadata = {
   title: 'コンテンツ | 野球ノート',
@@ -25,20 +25,19 @@ export default async function ParentContentsPage({
   ])
 
   return (
-    <div className="mx-auto w-full max-w-md space-y-4 px-4 py-6">
-      <header className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold text-slate-900">コンテンツ</h1>
-        <Link href="/parent" className="text-xs text-slate-500 underline">
-          ホーム
-        </Link>
-      </header>
+    <>
+      <PageHeader>
+        <h1 className="text-base font-semibold text-slate-900">コンテンツ</h1>
+      </PageHeader>
 
-      <ContentsList
-        basePath="/parent/contents"
-        items={items}
-        categories={categories}
-        selectedCategory={selected}
-      />
-    </div>
+      <div className="mx-auto w-full max-w-md space-y-4 px-4 py-4">
+        <ContentsList
+          basePath="/parent/contents"
+          items={items}
+          categories={categories}
+          selectedCategory={selected}
+        />
+      </div>
+    </>
   )
 }

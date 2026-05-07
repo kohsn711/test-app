@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { fetchParentChildren } from '@/lib/parent'
+import { PageHeader } from '@/components/page-header'
 
 export const metadata = {
   title: '保護者ホーム | 野球ノート',
@@ -24,14 +25,15 @@ export default async function ParentHomePage() {
   const children = await fetchParentChildren(userId)
 
   return (
-    <div className="mx-auto w-full max-w-md space-y-4 px-4 py-6">
-      <header className="space-y-1">
-        <p className="text-xs text-slate-500">保護者</p>
-        <h1 className="text-lg font-semibold text-slate-900">
-          {profile.display_name} さん
-        </h1>
-      </header>
+    <>
+      <PageHeader>
+        <div>
+          <p className="text-xs text-slate-500">保護者</p>
+          <p className="text-base font-semibold text-slate-900">{profile.display_name} さん</p>
+        </div>
+      </PageHeader>
 
+      <div className="mx-auto w-full max-w-md space-y-4 px-4 py-4">
       <section className="rounded-2xl bg-white p-4 shadow-sm">
         <h2 className="mb-3 text-sm font-semibold text-slate-900">お子さま</h2>
         {children.length === 0 ? (
@@ -66,31 +68,7 @@ export default async function ParentHomePage() {
           </ul>
         )}
       </section>
-
-      <section className="rounded-2xl bg-white p-4 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-sm font-semibold text-slate-900">コンテンツ</h2>
-            <p className="text-xs text-slate-500">保護者向け記事を見る</p>
-          </div>
-          <Link
-            href="/parent/contents"
-            className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-700"
-          >
-            一覧を見る
-          </Link>
-        </div>
-      </section>
-
-      <section className="rounded-2xl bg-white p-4 shadow-sm">
-        <h2 className="mb-2 text-sm font-semibold text-slate-900">招待・連携</h2>
-        <Link
-          href="/parent/links"
-          className="block rounded-lg bg-slate-900 px-3 py-2 text-center text-sm font-medium text-white"
-        >
-          招待・連携を確認する
-        </Link>
-      </section>
     </div>
+    </>
   )
 }

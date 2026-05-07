@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { fetchCoachTeamsWithStudents } from '@/lib/coach'
+import { PageHeader } from '@/components/page-header'
 
 export const metadata = {
   title: '監督ダッシュボード | 野球ノート',
@@ -25,26 +26,21 @@ export default async function CoachDashboardPage() {
   const teams = await fetchCoachTeamsWithStudents(userId)
 
   return (
-    <div className="mx-auto w-full max-w-md space-y-4 px-4 py-6">
-      <header className="space-y-1">
-        <p className="text-xs text-slate-500">監督</p>
-        <h1 className="text-lg font-semibold text-slate-900">{profile.display_name} さん</h1>
-      </header>
-
-      <section className="rounded-2xl bg-white p-4 shadow-sm">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-slate-900">所属チーム</h2>
-          <Link href="/coach/team/create" className="text-xs text-slate-700 underline">
-            新しく作る
-          </Link>
+    <>
+      <PageHeader>
+        <div>
+          <p className="text-xs text-slate-500">監督</p>
+          <p className="text-base font-semibold text-slate-900">{profile.display_name} さん</p>
         </div>
+      </PageHeader>
+
+      <div className="mx-auto w-full max-w-md space-y-4 px-4 py-4">
+      <section className="rounded-2xl bg-white p-4 shadow-sm">
+        <h2 className="mb-3 text-sm font-semibold text-slate-900">所属チーム</h2>
 
         {teams.length === 0 ? (
           <p className="text-sm text-slate-500">
-            まだチームがありません。
-            <Link href="/coach/team/create" className="ml-1 underline">
-              チームを作成する
-            </Link>
+            まだチームがありません。マイページからチームを作成できます。
           </p>
         ) : (
           <ul className="space-y-4">
@@ -99,21 +95,7 @@ export default async function CoachDashboardPage() {
           </ul>
         )}
       </section>
-
-      <section className="rounded-2xl bg-white p-4 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-sm font-semibold text-slate-900">コンテンツ</h2>
-            <p className="text-xs text-slate-500">監督向け記事を見る</p>
-          </div>
-          <Link
-            href="/coach/contents"
-            className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-700"
-          >
-            一覧を見る
-          </Link>
-        </div>
-      </section>
     </div>
+    </>
   )
 }
