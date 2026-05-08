@@ -86,6 +86,13 @@ export const updateSession = async (request: NextRequest) => {
       redirectUrl.search = ''
       return NextResponse.redirect(redirectUrl)
     }
+
+    if (profile?.role && pathname.startsWith('/admin') && profile.role !== 'admin') {
+      const redirectUrl = request.nextUrl.clone()
+      redirectUrl.pathname = roleHomePath(profile.role)
+      redirectUrl.search = ''
+      return NextResponse.redirect(redirectUrl)
+    }
   }
 
   return response

@@ -4,6 +4,7 @@ import {
   formatPublishedDate,
   toYouTubeEmbedUrl,
 } from '@/lib/contents'
+import { isSupportedImageUrl } from '@/lib/image-url'
 
 type Props = {
   content: ContentDetail
@@ -28,7 +29,7 @@ export const ContentDetailView = ({ content }: Props) => {
         )}
       </header>
 
-      {content.thumbnailUrl && (
+      {isSupportedImageUrl(content.thumbnailUrl) && (
         <div className="relative aspect-video overflow-hidden rounded-2xl bg-slate-100">
           <Image
             src={content.thumbnailUrl}

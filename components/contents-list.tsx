@@ -4,6 +4,7 @@ import {
   type ContentListItem,
   formatPublishedDate,
 } from '@/lib/contents'
+import { isSupportedImageUrl } from '@/lib/image-url'
 
 type Props = {
   basePath: string
@@ -51,7 +52,7 @@ export const ContentsList = ({
                 className="flex gap-3 overflow-hidden rounded-2xl bg-white p-3 shadow-sm hover:bg-slate-50"
               >
                 <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-slate-100">
-                  {item.thumbnailUrl ? (
+                  {isSupportedImageUrl(item.thumbnailUrl) ? (
                     <Image
                       src={item.thumbnailUrl}
                       alt=""
