@@ -27,16 +27,17 @@
 | 11 | [11-coach-dashboard.md](11-coach-dashboard.md) | 監督の選手一覧・記録閲覧 | [x] |
 | 12 | [12-parent-link.md](12-parent-link.md) | 保護者メール登録・保護者承認 | [x] |
 | 13 | [13-parent-home.md](13-parent-home.md) | 保護者ホーム・子どもの記録閲覧 | [x] |
-| 14 | [14-reactions-comments.md](14-reactions-comments.md) | リアクション・定型コメント | [x] |
+| 14 | [14-reactions-comments.md](14-reactions-comments.md) | リアクション・コメント | [x] |
 | 15 | [15-notifications.md](15-notifications.md) | アプリ内通知 | [x] |
 | 16 | [16-contents.md](16-contents.md) | コンテンツ一覧・詳細 | [x] |
 | 16b | [16b-ui-navigation.md](16b-ui-navigation.md) | 下部ナビゲーションバー・マイページ・UI改善 | [x] |
 | 17 | [17-admin-contents.md](17-admin-contents.md) | 運営コンテンツ管理 | [ ] |
 | 18 | [18-testing.md](18-testing.md) | 最低限のテスト | [ ] |
 | 19 | [19-deploy.md](19-deploy.md) | Vercelデプロイ | [ ] |
+| 20 | [20-pwa.md](20-pwa.md) | PWA対応 | [~] |
 
 ---
 
 ## 進捗サマリー
 
-完了: 17 / 20
+完了: 17 / 21
