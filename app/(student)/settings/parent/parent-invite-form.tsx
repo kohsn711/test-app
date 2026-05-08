@@ -26,7 +26,7 @@ export const ParentInviteForm = () => {
           className="w-full rounded-lg border border-slate-300 px-3 py-2 text-base focus:border-slate-500 focus:outline-none"
         />
         <p className="text-xs text-slate-500">
-          保護者はこのメールに届く認証コードでログインし、招待を承認すると記録を閲覧できるようになります。
+          初回の保護者には認証コードを送信します。登録済みの保護者はパスワードでログインして招待を承認します。
         </p>
       </div>
 

@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { ParentInviteForm } from './parent-invite-form'
-import { cancelParentInvite } from './actions'
+import { cancelParentInvite, resendParentInviteCode } from './actions'
 
 export const metadata = {
   title: '保護者の登録 | 野球ノート',
@@ -89,15 +89,25 @@ export default async function ParentInvitePage() {
                     {link.status === 'active' ? '承認済み' : '承認待ち'}
                   </p>
                 </div>
-                <form action={cancelParentInvite}>
-                  <input type="hidden" name="link_id" value={link.id} />
-                  <button
-                    type="submit"
-                    className="text-xs text-red-600 underline"
-                  >
-                    {link.status === 'active' ? '解除' : '取り消し'}
-                  </button>
-                </form>
+                <div className="flex shrink-0 items-center gap-3">
+                  {link.status === 'pending' && !link.parent_id && (
+                    <form action={resendParentInviteCode}>
+                      <input type="hidden" name="link_id" value={link.id} />
+                      <button type="submit" className="text-xs text-slate-600 underline">
+                        再送
+                      </button>
+                    </form>
+                  )}
+                  <form action={cancelParentInvite}>
+                    <input type="hidden" name="link_id" value={link.id} />
+                    <button
+                      type="submit"
+                      className="text-xs text-red-600 underline"
+                    >
+                      {link.status === 'active' ? '解除' : '取り消し'}
+                    </button>
+                  </form>
+                </div>
               </li>
             ))}
           </ul>

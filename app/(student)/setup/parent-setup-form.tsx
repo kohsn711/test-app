@@ -27,6 +27,36 @@ export const ParentSetupForm = () => {
         />
       </div>
 
+      <div className="space-y-1">
+        <label htmlFor="password" className="block text-sm font-medium text-slate-700">
+          パスワード <span className="text-red-600">*</span>
+        </label>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          required
+          minLength={8}
+          autoComplete="new-password"
+          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-base focus:border-slate-500 focus:outline-none"
+        />
+      </div>
+
+      <div className="space-y-1">
+        <label htmlFor="password_confirm" className="block text-sm font-medium text-slate-700">
+          パスワード確認 <span className="text-red-600">*</span>
+        </label>
+        <input
+          id="password_confirm"
+          name="password_confirm"
+          type="password"
+          required
+          minLength={8}
+          autoComplete="new-password"
+          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-base focus:border-slate-500 focus:outline-none"
+        />
+      </div>
+
       {state?.error && (
         <p className="text-sm text-red-600" role="alert">
           {state.error}
