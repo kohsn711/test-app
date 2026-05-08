@@ -28,7 +28,6 @@ export const approveParentLink = async (formData: FormData): Promise<void> => {
     .update({ parent_id: userId, status: 'active' })
     .eq('id', linkId)
     .eq('status', 'pending')
-    .eq('invited_email', userEmail)
 
   revalidatePath('/parent/links')
 }

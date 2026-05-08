@@ -31,12 +31,19 @@ export default async function ParentLinksPage() {
   if (!profile?.role) redirect('/setup')
   if (profile.role !== 'parent') redirect('/login')
 
-  const [activeRes, pendingRes] = await Promise.all([
+  const [activeRes, pendingByParentRes, pendingByEmailRes] = await Promise.all([
     supabase
       .from('parent_child_links')
       .select('id, parent_id, student_id, invited_email, status, created_at')
       .eq('parent_id', userId)
       .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .returns<LinkRow[]>(),
+    supabase
+      .from('parent_child_links')
+      .select('id, parent_id, student_id, invited_email, status, created_at')
+      .eq('parent_id', userId)
+      .eq('status', 'pending')
       .order('created_at', { ascending: false })
       .returns<LinkRow[]>(),
     userEmail
@@ -51,7 +58,10 @@ export default async function ParentLinksPage() {
       : Promise.resolve({ data: [] as LinkRow[] }),
   ])
 
-  const pending = pendingRes.data ?? []
+  const pendingMap = new Map<string, LinkRow>()
+  for (const link of pendingByParentRes.data ?? []) pendingMap.set(link.id, link)
+  for (const link of pendingByEmailRes.data ?? []) pendingMap.set(link.id, link)
+  const pending = [...pendingMap.values()]
   const active = activeRes.data ?? []
 
   const studentIds = [...pending, ...active].map((l) => l.student_id)

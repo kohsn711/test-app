@@ -5,7 +5,6 @@ import { createClient } from '@/utils/supabase/server'
 import { getPostLoginPath } from '@/lib/auth'
 
 export type ActionState =
-  | { step: 'otp'; email: string; error?: string }
   | { error?: string }
   | undefined
 
@@ -36,30 +35,7 @@ export const signInWithPassword = async (
   redirect(next)
 }
 
-export const sendLoginOtp = async (
-  _prev: ActionState,
-  formData: FormData
-): Promise<ActionState> => {
-  const email = String(formData.get('email') ?? '').trim()
-
-  if (!isValidEmail(email)) {
-    return { error: 'メールアドレスの形式が正しくありません。' }
-  }
-
-  const supabase = await createClient()
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: { shouldCreateUser: false },
-  })
-
-  if (error) {
-    return { error: '認証コードの送信に失敗しました。メールアドレスを確認してください。' }
-  }
-
-  return { step: 'otp', email }
-}
-
-export const verifyLoginOtp = async (
+export const verifyInitialParentOtp = async (
   _prev: ActionState,
   formData: FormData
 ): Promise<ActionState> => {
@@ -77,11 +53,40 @@ export const verifyLoginOtp = async (
   const { error } = await supabase.auth.verifyOtp({ email, token, type: 'email' })
 
   if (error) {
-    return { step: 'otp', email, error: '認証コードが正しくありません。コードを確認して再度お試しください。' }
+    return { error: '認証コードが正しくありません。コードを確認して再度お試しください。' }
   }
 
-  const next = await getPostLoginPath()
-  redirect(next)
+  const { data: claimsData } = await supabase.auth.getClaims()
+  const userId = claimsData?.claims?.sub
+  if (!userId) {
+    await supabase.auth.signOut()
+    return { error: 'ログインに失敗しました。時間をおいて再度お試しください。' }
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', userId)
+    .maybeSingle()
+  if (profile?.role) {
+    await supabase.auth.signOut()
+    return { error: '初回設定済みです。パスワードでログインしてください。' }
+  }
+
+  const { data: invites } = await supabase
+    .from('parent_child_links')
+    .select('id')
+    .eq('status', 'pending')
+    .is('parent_id', null)
+    .eq('invited_email', email.toLowerCase())
+    .limit(1)
+
+  if (!invites || invites.length === 0) {
+    await supabase.auth.signOut()
+    return { error: '保護者の初回招待が見つかりませんでした。' }
+  }
+
+  redirect('/setup')
 }
 
 export const signOut = async () => {
