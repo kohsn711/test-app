@@ -31,7 +31,7 @@
 | 15 | [15-notifications.md](15-notifications.md) | アプリ内通知 | [x] |
 | 16 | [16-contents.md](16-contents.md) | コンテンツ一覧・詳細 | [x] |
 | 16b | [16b-ui-navigation.md](16b-ui-navigation.md) | 下部ナビゲーションバー・マイページ・UI改善 | [x] |
-| 17 | [17-admin-contents.md](17-admin-contents.md) | 運営コンテンツ管理 | [ ] |
+| 17 | [17-admin-contents.md](17-admin-contents.md) | 運営コンテンツ管理 | [x] |
 | 18 | [18-testing.md](18-testing.md) | 最低限のテスト | [ ] |
 | 19 | [19-deploy.md](19-deploy.md) | Vercelデプロイ | [ ] |
 | 20 | [20-pwa.md](20-pwa.md) | PWA対応 | [~] |
@@ -40,4 +40,4 @@
 
 ## 進捗サマリー
 
-完了: 17 / 21
+完了: 18 / 21

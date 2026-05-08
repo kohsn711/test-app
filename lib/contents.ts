@@ -5,6 +5,30 @@ export type ContentStatus = 'draft' | 'published' | 'archived'
 
 export type Audience = 'student' | 'parent' | 'coach'
 
+export const CONTENT_STATUSES = [
+  'draft',
+  'published',
+  'archived',
+] as const satisfies readonly ContentStatus[]
+
+export const CONTENT_STATUS_LABEL: Record<ContentStatus, string> = {
+  draft: '下書き',
+  published: '公開中',
+  archived: 'アーカイブ',
+}
+
+export const CONTENT_CATEGORIES = [
+  '練習',
+  'トレーニング',
+  '食事',
+  'コンディション',
+  'ケガ予防',
+  '目標',
+  '保護者向け',
+  '指導者向け',
+  'お知らせ',
+] as const
+
 const AUDIENCE_COLUMN = {
   student: 'for_student',
   parent: 'for_parent',
@@ -26,6 +50,50 @@ export type ContentDetail = ContentListItem & {
   forParent: boolean
   forCoach: boolean
 }
+
+export type AdminContentListItem = ContentDetail & {
+  status: ContentStatus
+  createdAt: string
+  updatedAt: string
+}
+
+export type AdminContentDetail = AdminContentListItem & {
+  createdBy: string
+}
+
+type AdminContentRow = {
+  id: string
+  title: string
+  body: string
+  thumbnail_url: string | null
+  category: string | null
+  external_video_url: string | null
+  status: string
+  published_at: string | null
+  created_by: string
+  created_at: string
+  updated_at: string
+  for_student: boolean
+  for_parent: boolean
+  for_coach: boolean
+}
+
+const mapAdminContentRow = (row: AdminContentRow): AdminContentDetail => ({
+  id: row.id,
+  title: row.title,
+  body: row.body,
+  thumbnailUrl: row.thumbnail_url,
+  category: row.category,
+  externalVideoUrl: row.external_video_url,
+  status: row.status as ContentStatus,
+  publishedAt: row.published_at,
+  createdBy: row.created_by,
+  createdAt: row.created_at,
+  updatedAt: row.updated_at,
+  forStudent: row.for_student,
+  forParent: row.for_parent,
+  forCoach: row.for_coach,
+})
 
 export const fetchPublishedContents = async (
   audience: Audience,
@@ -106,6 +174,48 @@ export const fetchContentDetail = async (
     forParent: data.for_parent,
     forCoach: data.for_coach,
   }
+}
+
+export const fetchAdminContents = async (): Promise<AdminContentListItem[]> => {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('contents')
+    .select(
+      'id, title, body, thumbnail_url, category, external_video_url, status, published_at, created_by, created_at, updated_at, for_student, for_parent, for_coach'
+    )
+    .order('updated_at', { ascending: false })
+
+  return ((data ?? []) as AdminContentRow[]).map(mapAdminContentRow)
+}
+
+export const fetchAdminContentById = async (
+  id: string
+): Promise<AdminContentDetail | null> => {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('contents')
+    .select(
+      'id, title, body, thumbnail_url, category, external_video_url, status, published_at, created_by, created_at, updated_at, for_student, for_parent, for_coach'
+    )
+    .eq('id', id)
+    .maybeSingle()
+
+  if (!data) return null
+  return mapAdminContentRow(data as AdminContentRow)
+}
+
+export const formatDateTime = (iso: string | null): string => {
+  if (!iso) return '未設定'
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return '未設定'
+  return new Intl.DateTimeFormat('ja-JP', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Asia/Tokyo',
+  }).format(d)
 }
 
 const YOUTUBE_HOSTS = ['youtube.com', 'www.youtube.com', 'm.youtube.com']
