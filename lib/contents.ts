@@ -5,6 +5,23 @@ export type ContentStatus = 'draft' | 'published' | 'archived'
 
 export type Audience = 'student' | 'parent' | 'coach'
 
+export type AdminAudienceFilter = Audience | 'all'
+
+export type AdminPublishedPeriod = 'all' | 'today' | 'week' | 'month'
+
+export type AdminContentsQuery = {
+  status: ContentStatus
+  audience: AdminAudienceFilter
+  period: AdminPublishedPeriod
+  page: number
+  limit: number
+}
+
+export type AdminContentsResult = {
+  items: AdminContentListItem[]
+  hasNext: boolean
+}
+
 export const CONTENT_STATUSES = [
   'draft',
   'published',
@@ -15,6 +32,20 @@ export const CONTENT_STATUS_LABEL: Record<ContentStatus, string> = {
   draft: '下書き',
   published: '公開中',
   archived: 'アーカイブ',
+}
+
+export const ADMIN_AUDIENCE_LABEL: Record<AdminAudienceFilter, string> = {
+  all: 'すべて',
+  student: '学生',
+  parent: '保護者',
+  coach: '監督',
+}
+
+export const ADMIN_PUBLISHED_PERIOD_LABEL: Record<AdminPublishedPeriod, string> = {
+  all: 'すべて',
+  today: '今日',
+  week: '今週',
+  month: '今月',
 }
 
 export const CONTENT_CATEGORIES = [
@@ -176,16 +207,67 @@ export const fetchContentDetail = async (
   }
 }
 
-export const fetchAdminContents = async (): Promise<AdminContentListItem[]> => {
+const getJstPeriodStartIso = (period: AdminPublishedPeriod): string | null => {
+  if (period === 'all') return null
+
+  const now = new Date()
+  const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000)
+  const year = jst.getUTCFullYear()
+  const month = jst.getUTCMonth()
+  const day = jst.getUTCDate()
+  const start = new Date(Date.UTC(year, month, day) - 9 * 60 * 60 * 1000)
+
+  if (period === 'week') {
+    const dayOfWeek = jst.getUTCDay()
+    const daysSinceMonday = (dayOfWeek + 6) % 7
+    start.setUTCDate(start.getUTCDate() - daysSinceMonday)
+  }
+
+  if (period === 'month') {
+    start.setUTCDate(1)
+  }
+
+  return start.toISOString()
+}
+
+export const fetchAdminContents = async (
+  options: AdminContentsQuery
+): Promise<AdminContentsResult> => {
   const supabase = await createClient()
-  const { data } = await supabase
+  const page = Math.max(1, options.page)
+  const limit = Math.max(1, Math.min(50, options.limit))
+  const from = (page - 1) * limit
+  const to = from + limit
+
+  let query = supabase
     .from('contents')
     .select(
       'id, title, body, thumbnail_url, category, external_video_url, status, published_at, created_by, created_at, updated_at, for_student, for_parent, for_coach'
     )
-    .order('updated_at', { ascending: false })
+    .eq('status', options.status)
 
-  return ((data ?? []) as AdminContentRow[]).map(mapAdminContentRow)
+  if (options.audience !== 'all') {
+    query = query.eq(AUDIENCE_COLUMN[options.audience], true)
+  }
+
+  const periodStart =
+    options.status === 'published' ? getJstPeriodStartIso(options.period) : null
+  if (periodStart) {
+    query = query.gte('published_at', periodStart)
+  }
+
+  query =
+    options.status === 'published'
+      ? query.order('published_at', { ascending: false })
+      : query.order('updated_at', { ascending: false })
+
+  const { data } = await query.range(from, to)
+  const rows = ((data ?? []) as AdminContentRow[]).map(mapAdminContentRow)
+
+  return {
+    items: rows.slice(0, limit),
+    hasNext: rows.length > limit,
+  }
 }
 
 export const fetchAdminContentById = async (
