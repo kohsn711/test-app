@@ -283,16 +283,12 @@ export type RecordComment = {
 
 export type SocialViewerRole = 'student' | 'coach' | 'parent'
 
-// viewerRole 視点で「相手側ロール」のものは除外する
-//   coach   → parent の送信を除外
-//   parent → coach の送信を除外
-//   student → 全件
-const hiddenSenderRole = (
-  viewerRole: SocialViewerRole
-): 'coach' | 'parent' | null => {
-  if (viewerRole === 'coach') return 'parent'
-  if (viewerRole === 'parent') return 'coach'
-  return null
+const canShowSenderRole = (
+  viewerRole: SocialViewerRole,
+  senderRole: string | null | undefined
+): boolean => {
+  if (viewerRole === 'student') return senderRole === 'coach' || senderRole === 'parent'
+  return senderRole === viewerRole
 }
 
 export const fetchRecordSocial = async (
@@ -302,61 +298,41 @@ export const fetchRecordSocial = async (
   const supabase = await createClient()
 
   const [reactionsRes, commentsRes] = await Promise.all([
-    supabase
-      .from('reactions')
-      .select(
-        'id, emoji, sender_id, created_at, sender:profiles!reactions_sender_id_fkey(display_name, role)'
-      )
-      .eq('daily_record_id', dailyRecordId)
-      .order('created_at', { ascending: false }),
-    supabase
-      .from('comments')
-      .select(
-        'id, text, created_at, sender:profiles!comments_sender_id_fkey(display_name, role)'
-      )
-      .eq('daily_record_id', dailyRecordId)
-      .order('created_at', { ascending: false }),
+    supabase.rpc('get_record_reactions', { _daily_record_id: dailyRecordId }),
+    supabase.rpc('get_record_comments', { _daily_record_id: dailyRecordId }),
   ])
 
-  type SenderProfile = { display_name: string; role: string }
   type ReactionRow = {
     id: string
     emoji: string
     sender_id: string
+    sender_name: string
+    sender_role: string | null
     created_at: string
-    sender: SenderProfile | SenderProfile[] | null
   }
   type CommentRow = {
     id: string
     text: string
+    sender_name: string
+    sender_role: string | null
     created_at: string
-    sender: SenderProfile | SenderProfile[] | null
   }
 
-  const pickOne = <T>(v: T | T[] | null | undefined): T | null =>
-    Array.isArray(v) ? (v[0] ?? null) : (v ?? null)
-
-  const hide = hiddenSenderRole(viewerRole)
-  const visible = (sender: SenderProfile | null): boolean =>
-    hide == null ? true : sender?.role !== hide
-
   const reactions: RecordReaction[] = ((reactionsRes.data ?? []) as ReactionRow[])
-    .map((r) => ({ row: r, sender: pickOne(r.sender) }))
-    .filter(({ sender }) => visible(sender))
-    .map(({ row, sender }) => ({
+    .filter((row) => canShowSenderRole(viewerRole, row.sender_role))
+    .map((row) => ({
       id: row.id,
       emoji: row.emoji,
       senderId: row.sender_id,
-      senderName: sender?.display_name ?? '',
+      senderName: row.sender_name,
       createdAt: row.created_at,
     }))
   const comments: RecordComment[] = ((commentsRes.data ?? []) as CommentRow[])
-    .map((c) => ({ row: c, sender: pickOne(c.sender) }))
-    .filter(({ sender }) => visible(sender))
-    .map(({ row, sender }) => ({
+    .filter((row) => canShowSenderRole(viewerRole, row.sender_role))
+    .map((row) => ({
       id: row.id,
       text: row.text,
-      senderName: sender?.display_name ?? '',
+      senderName: row.sender_name,
       createdAt: row.created_at,
     }))
 
